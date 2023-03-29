@@ -1,9 +1,10 @@
 package codegen
 
 import (
-	"github.com/zelenin/go-tdlib/tlparser"
 	"log"
 	"strings"
+
+	"github.com/megaplan/go-tdlib/tlparser"
 )
 
 type tdlibFunction struct {
