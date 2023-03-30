@@ -43,7 +43,7 @@ func WithLogVerbosity(req *SetLogVerbosityLevelRequest) Option {
 	}
 }
 
-func NewClient(authorizationStateHandler AuthorizationStateHandler, options ...Option) (*Client, error) {
+func createClient(options ...Option) *Client {
 	client := &Client{
 		jsonClient:    NewJsonClient(),
 		responses:     make(chan *Response, 1000),
@@ -62,12 +62,32 @@ func NewClient(authorizationStateHandler AuthorizationStateHandler, options ...O
 
 	go client.receiver()
 
+	return client
+}
+
+func NewClient(authorizationStateHandler AuthorizationStateHandler, options ...Option) (*Client, error) {
+	client := createClient(options...)
+
 	err := Authorize(client, authorizationStateHandler)
 	if err != nil {
+		authorizationStateHandler.Error(err)
 		return nil, err
 	}
 
 	return client, nil
+}
+
+func NewClientAsync(authorizationStateHandler AuthorizationStateHandler, options ...Option) *Client {
+	client := createClient(options...)
+
+	go func() {
+		err := Authorize(client, authorizationStateHandler)
+		if err != nil {
+			authorizationStateHandler.Error(err)
+		}
+	}()
+
+	return client
 }
 
 func (client *Client) receiver() {

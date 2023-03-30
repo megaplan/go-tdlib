@@ -1,15 +1,21 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 )
 
 var ErrNotSupportedAuthorizationState = errors.New("not supported state")
 
+const AuthCheckTimeout = 1 * time.Millisecond
+
 type AuthorizationStateHandler interface {
+	Context() context.Context
 	Handle(client *Client, state AuthorizationState) error
+	Error(err error)
 	Close()
 }
 
@@ -19,25 +25,32 @@ func Authorize(client *Client, authorizationStateHandler AuthorizationStateHandl
 	var authorizationError error
 
 	for {
-		state, err := client.GetAuthorizationState()
-		if err != nil {
-			return err
-		}
+		select {
+		case <-time.After(AuthCheckTimeout):
+			state, err := client.GetAuthorizationState()
+			if err != nil {
+				return err
+			}
 
-		if state.AuthorizationStateType() == TypeAuthorizationStateClosed {
-			return authorizationError
-		}
+			err = authorizationStateHandler.Handle(client, state)
+			if err != nil {
+				authorizationError = err
+				client.Close()
+			}
 
-		if state.AuthorizationStateType() == TypeAuthorizationStateReady {
-			// dirty hack for db flush after authorization
-			time.Sleep(1 * time.Second)
-			return nil
-		}
+			if state.AuthorizationStateType() == TypeAuthorizationStateClosed {
+				return authorizationError
+			}
 
-		err = authorizationStateHandler.Handle(client, state)
-		if err != nil {
-			authorizationError = err
+			if state.AuthorizationStateType() == TypeAuthorizationStateReady {
+				// dirty hack for db flush after authorization
+				time.Sleep(1 * time.Second)
+				return nil
+			}
+
+		case <-authorizationStateHandler.Context().Done():
 			client.Close()
+			return errors.New("authorization timeout finished")
 		}
 	}
 }
@@ -58,6 +71,14 @@ func ClientAuthorizer() *clientAuthorizer {
 		State:           make(chan AuthorizationState, 10),
 		Password:        make(chan string, 1),
 	}
+}
+
+func (stateHandler *clientAuthorizer) Error(err error) {
+	log.Fatalf("Authorization error: %s", err)
+}
+
+func (stateHandler *clientAuthorizer) Context() context.Context {
+	return context.Background()
 }
 
 func (stateHandler *clientAuthorizer) Handle(client *Client, state AuthorizationState) error {
@@ -178,6 +199,14 @@ func BotAuthorizer(token string) *botAuthorizer {
 	botAuthorizer.Token <- token
 
 	return botAuthorizer
+}
+
+func (stateHandler *botAuthorizer) Error(err error) {
+	log.Fatalf("Authorization error: %s", err)
+}
+
+func (stateHandler *botAuthorizer) Context() context.Context {
+	return context.Background()
 }
 
 func (stateHandler *botAuthorizer) Handle(client *Client, state AuthorizationState) error {

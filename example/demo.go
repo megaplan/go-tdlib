@@ -8,10 +8,12 @@ import (
 	"strconv"
 	"syscall"
 
+	"github.com/joho/godotenv"
 	"github.com/megaplan/go-tdlib/client"
 )
 
 func main() {
+	godotenv.Load()
 	authorizer := client.ClientAuthorizer()
 	go client.CliInteractor(authorizer)
 
