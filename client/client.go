@@ -157,3 +157,7 @@ func (client *Client) GetListener() *Listener {
 func (client *Client) Stop() {
 	client.Destroy()
 }
+
+func (client *Client) Shutdown() {
+	close(client.responses)
+}
