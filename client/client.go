@@ -159,5 +159,7 @@ func (client *Client) Stop() {
 }
 
 func (client *Client) Shutdown() {
+	tdlibInstance.removeClient(client)
+
 	close(client.responses)
 }

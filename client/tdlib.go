@@ -44,6 +44,13 @@ func (instance *tdlib) addClient(client *Client) {
 	})
 }
 
+func (instance *tdlib) removeClient(client *Client) {
+	instance.mu.Lock()
+	defer instance.mu.Unlock()
+
+	delete(instance.clients, client.jsonClient.id)
+}
+
 func (instance *tdlib) getClient(id int) (*Client, error) {
 	instance.mu.Lock()
 	defer instance.mu.Unlock()

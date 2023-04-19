@@ -49,8 +49,7 @@ func Authorize(client *Client, authorizationStateHandler AuthorizationStateHandl
 			}
 
 		case <-authorizationStateHandler.Context().Done():
-			client.Close()
-			return errors.New("authorization timeout finished")
+			return nil
 		}
 	}
 }
