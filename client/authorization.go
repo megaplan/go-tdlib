@@ -12,6 +12,42 @@ var ErrNotSupportedAuthorizationState = errors.New("not supported state")
 
 const AuthCheckTimeout = 1 * time.Millisecond
 
+// Contains parameters for TDLib initialization
+type TdlibParameters struct {
+	// Pass true to use Telegram test environment instead of the production environment
+	UseTestDc bool `json:"use_test_dc"`
+	// The path to the directory for the persistent database; if empty, the current working directory will be used
+	DatabaseDirectory string `json:"database_directory"`
+	// The path to the directory for storing files; if empty, database_directory will be used
+	FilesDirectory string `json:"files_directory"`
+	// Encryption key for the database. If the encryption key is invalid, then an error with code 401 will be returned
+	DatabaseEncryptionKey []byte `json:"database_encryption_key"`
+	// Pass true to keep information about downloaded and uploaded files between application restarts
+	UseFileDatabase bool `json:"use_file_database"`
+	// Pass true to keep cache of users, basic groups, supergroups, channels and secret chats between restarts. Implies use_file_database
+	UseChatInfoDatabase bool `json:"use_chat_info_database"`
+	// Pass true to keep cache of chats and messages between restarts. Implies use_chat_info_database
+	UseMessageDatabase bool `json:"use_message_database"`
+	// Pass true to enable support for secret chats
+	UseSecretChats bool `json:"use_secret_chats"`
+	// Application identifier for Telegram API access, which can be obtained at https://my.telegram.org
+	ApiId int32 `json:"api_id"`
+	// Application identifier hash for Telegram API access, which can be obtained at https://my.telegram.org
+	ApiHash string `json:"api_hash"`
+	// IETF language tag of the user's operating system language; must be non-empty
+	SystemLanguageCode string `json:"system_language_code"`
+	// Model of the device the application is being run on; must be non-empty
+	DeviceModel string `json:"device_model"`
+	// Version of the operating system the application is being run on. If empty, the version is automatically detected by TDLib
+	SystemVersion string `json:"system_version"`
+	// Application version; must be non-empty
+	ApplicationVersion string `json:"application_version"`
+	// Pass true to automatically delete old files in background
+	EnableStorageOptimizer bool `json:"enable_storage_optimizer"`
+	// Pass true to ignore original file names for downloaded files. Otherwise, downloaded files are saved under names as close as possible to the original name
+	IgnoreFileNames bool `json:"ignore_file_names"`
+}
+
 type AuthorizationStateHandler interface {
 	Context() context.Context
 	Handle(client *Client, state AuthorizationState) error
@@ -85,13 +121,25 @@ func (stateHandler *clientAuthorizer) Handle(client *Client, state Authorization
 
 	switch state.AuthorizationStateType() {
 	case TypeAuthorizationStateWaitTdlibParameters:
+		p := <-stateHandler.TdlibParameters
 		_, err := client.SetTdlibParameters(&SetTdlibParametersRequest{
-			Parameters: <-stateHandler.TdlibParameters,
+			UseTestDc:              p.UseTestDc,
+			DatabaseDirectory:      p.DatabaseDirectory,
+			FilesDirectory:         p.FilesDirectory,
+			DatabaseEncryptionKey:  p.DatabaseEncryptionKey,
+			UseFileDatabase:        p.UseFileDatabase,
+			UseChatInfoDatabase:    p.UseChatInfoDatabase,
+			UseMessageDatabase:     p.UseMessageDatabase,
+			UseSecretChats:         p.UseSecretChats,
+			ApiId:                  p.ApiId,
+			ApiHash:                p.ApiHash,
+			SystemLanguageCode:     p.SystemLanguageCode,
+			DeviceModel:            p.DeviceModel,
+			SystemVersion:          p.SystemVersion,
+			ApplicationVersion:     p.ApplicationVersion,
+			EnableStorageOptimizer: p.EnableStorageOptimizer,
+			IgnoreFileNames:        p.IgnoreFileNames,
 		})
-		return err
-
-	case TypeAuthorizationStateWaitEncryptionKey:
-		_, err := client.CheckDatabaseEncryptionKey(&CheckDatabaseEncryptionKeyRequest{})
 		return err
 
 	case TypeAuthorizationStateWaitPhoneNumber:
@@ -105,11 +153,20 @@ func (stateHandler *clientAuthorizer) Handle(client *Client, state Authorization
 		})
 		return err
 
+	case TypeAuthorizationStateWaitEmailAddress:
+		return ErrNotSupportedAuthorizationState
+
+	case TypeAuthorizationStateWaitEmailCode:
+		return ErrNotSupportedAuthorizationState
+
 	case TypeAuthorizationStateWaitCode:
 		_, err := client.CheckAuthenticationCode(&CheckAuthenticationCodeRequest{
 			Code: <-stateHandler.Code,
 		})
 		return err
+
+	case TypeAuthorizationStateWaitOtherDeviceConfirmation:
+		return ErrNotSupportedAuthorizationState
 
 	case TypeAuthorizationStateWaitRegistration:
 		return ErrNotSupportedAuthorizationState
@@ -160,6 +217,12 @@ func CliInteractor(clientAuthorizer *clientAuthorizer) {
 
 				clientAuthorizer.PhoneNumber <- phoneNumber
 
+			case TypeAuthorizationStateWaitEmailAddress:
+				return
+
+			case TypeAuthorizationStateWaitEmailCode:
+				return
+
 			case TypeAuthorizationStateWaitCode:
 				var code string
 
@@ -167,6 +230,12 @@ func CliInteractor(clientAuthorizer *clientAuthorizer) {
 				fmt.Scanln(&code)
 
 				clientAuthorizer.Code <- code
+
+			case TypeAuthorizationStateWaitOtherDeviceConfirmation:
+				return
+
+			case TypeAuthorizationStateWaitRegistration:
+				return
 
 			case TypeAuthorizationStateWaitPassword:
 				fmt.Println("Enter password: ")
@@ -213,13 +282,25 @@ func (stateHandler *botAuthorizer) Handle(client *Client, state AuthorizationSta
 
 	switch state.AuthorizationStateType() {
 	case TypeAuthorizationStateWaitTdlibParameters:
+		p := <-stateHandler.TdlibParameters
 		_, err := client.SetTdlibParameters(&SetTdlibParametersRequest{
-			Parameters: <-stateHandler.TdlibParameters,
+			UseTestDc:              p.UseTestDc,
+			DatabaseDirectory:      p.DatabaseDirectory,
+			FilesDirectory:         p.FilesDirectory,
+			DatabaseEncryptionKey:  p.DatabaseEncryptionKey,
+			UseFileDatabase:        p.UseFileDatabase,
+			UseChatInfoDatabase:    p.UseChatInfoDatabase,
+			UseMessageDatabase:     p.UseMessageDatabase,
+			UseSecretChats:         p.UseSecretChats,
+			ApiId:                  p.ApiId,
+			ApiHash:                p.ApiHash,
+			SystemLanguageCode:     p.SystemLanguageCode,
+			DeviceModel:            p.DeviceModel,
+			SystemVersion:          p.SystemVersion,
+			ApplicationVersion:     p.ApplicationVersion,
+			EnableStorageOptimizer: p.EnableStorageOptimizer,
+			IgnoreFileNames:        p.IgnoreFileNames,
 		})
-		return err
-
-	case TypeAuthorizationStateWaitEncryptionKey:
-		_, err := client.CheckDatabaseEncryptionKey(&CheckDatabaseEncryptionKeyRequest{})
 		return err
 
 	case TypeAuthorizationStateWaitPhoneNumber:

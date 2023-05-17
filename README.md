@@ -1,12 +1,12 @@
 # go-tdlib
 
-Go wrapper for [TDLib (Telegram Database Library)](https://github.com/tdlib/td) with full support of TDLib v1.8.0
+Go wrapper for [TDLib (Telegram Database Library)](https://github.com/tdlib/td) with full support of TDLib v1.8.14
 
 ## TDLib installation
 
 Use [TDLib build instructions](https://tdlib.github.io/td/build.html) with checkmarked `Install built TDLib to /usr/local instead of placing the files to td/tdlib`.
 
-### Note: Compatible with TDLib v1.8.0 only!
+### Note: Compatible with TDLib v1.8.14 only!
 
 ### Windows
 
@@ -143,7 +143,7 @@ tdlibClient, err := client.NewClient(authorizer, proxy)
 
 ```
 cd example
-docker build --network host --build-arg TD_TAG=v1.8.0 --tag tdlib-test .
+docker build --network host --build-arg TD_TAG=v1.8.14 --tag tdlib-test .
 docker run --rm -it -e "API_ID=00000" -e "API_HASH=abcdef0123456789" tdlib-test ash
 ./app
 ```

@@ -2,6 +2,7 @@ package client
 
 /*
 #include <stdlib.h>
+#include <string.h>
 #include <td/telegram/td_json_client.h>
 */
 import "C"
@@ -90,7 +91,8 @@ func (instance *tdlib) receive(timeout time.Duration) (*Response, error) {
 		return nil, errors.New("update receiving timeout")
 	}
 
-	data := []byte(C.GoString(result))
+	resultLen := C.strlen(result)
+	data := C.GoBytes(unsafe.Pointer(result), C.int(resultLen))
 
 	var resp Response
 
@@ -114,7 +116,8 @@ func Execute(req Request) (*Response, error) {
 		return nil, errors.New("request can't be parsed")
 	}
 
-	data = []byte(C.GoString(result))
+	resultLen := C.strlen(result)
+	data = C.GoBytes(unsafe.Pointer(result), C.int(resultLen))
 
 	var resp Response
 
