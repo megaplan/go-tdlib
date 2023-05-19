@@ -22,7 +22,7 @@ func main() {
 
 	flag.Parse()
 
-	resp, err := http.Get("https://raw.githubusercontent.com/tdlib/td/" + version + "/td/generate/scheme/td_api.tl")
+	resp, err := http.Get("https://raw.githubusercontent.com/megaplan/tdlight/" + version + "/td/generate/scheme/td_api.tl")
 	if err != nil {
 		log.Fatalf("http.Get error: %s", err)
 		return
@@ -35,7 +35,7 @@ func main() {
 		return
 	}
 
-	resp, err = http.Get("https://raw.githubusercontent.com/tdlib/td/" + version + "/td/telegram/Td.cpp")
+	resp, err = http.Get("https://raw.githubusercontent.com/megaplan/tdlight/" + version + "/td/telegram/Td.cpp")
 	if err != nil {
 		log.Fatalf("http.Get error: %s", err)
 		return

@@ -33,7 +33,7 @@ func main() {
 
 	flag.Parse()
 
-	resp, err := http.Get("https://raw.githubusercontent.com/tdlib/td/" + config.version + "/td/generate/scheme/td_api.tl")
+	resp, err := http.Get("https://raw.githubusercontent.com/megaplan/tdlight/" + config.version + "/td/generate/scheme/td_api.tl")
 	if err != nil {
 		log.Fatalf("http.Get error: %s", err)
 		return

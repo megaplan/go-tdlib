@@ -508,6 +508,40 @@ func UnmarshalListOfUserType(dataList []json.RawMessage) ([]UserType, error) {
 	return list, nil
 }
 
+func UnmarshalAccessHashType(data json.RawMessage) (AccessHashType, error) {
+	var meta meta
+
+	err := json.Unmarshal(data, &meta)
+	if err != nil {
+		return nil, err
+	}
+
+	switch meta.Type {
+	case TypeAccessHashTypeUser:
+		return UnmarshalAccessHashTypeUser(data)
+
+	case TypeAccessHashTypeChannel:
+		return UnmarshalAccessHashTypeChannel(data)
+
+	default:
+		return nil, fmt.Errorf("Error unmarshaling. Unknown type: " + meta.Type)
+	}
+}
+
+func UnmarshalListOfAccessHashType(dataList []json.RawMessage) ([]AccessHashType, error) {
+	list := []AccessHashType{}
+
+	for _, data := range dataList {
+		entity, err := UnmarshalAccessHashType(data)
+		if err != nil {
+			return nil, err
+		}
+		list = append(list, entity)
+	}
+
+	return list, nil
+}
+
 func UnmarshalChatPhotoStickerType(data json.RawMessage) (ChatPhotoStickerType, error) {
 	var meta meta
 
@@ -5565,6 +5599,9 @@ func UnmarshalUpdate(data json.RawMessage) (Update, error) {
 	case TypeUpdateUser:
 		return UnmarshalUpdateUser(data)
 
+	case TypeUpdateAccessHash:
+		return UnmarshalUpdateAccessHash(data)
+
 	case TypeUpdateBasicGroup:
 		return UnmarshalUpdateBasicGroup(data)
 
@@ -6546,6 +6583,30 @@ func UnmarshalUserTypeBot(data json.RawMessage) (*UserTypeBot, error) {
 
 func UnmarshalUserTypeUnknown(data json.RawMessage) (*UserTypeUnknown, error) {
 	var resp UserTypeUnknown
+
+	err := json.Unmarshal(data, &resp)
+
+	return &resp, err
+}
+
+func UnmarshalAccessHashTypeUser(data json.RawMessage) (*AccessHashTypeUser, error) {
+	var resp AccessHashTypeUser
+
+	err := json.Unmarshal(data, &resp)
+
+	return &resp, err
+}
+
+func UnmarshalAccessHashTypeChannel(data json.RawMessage) (*AccessHashTypeChannel, error) {
+	var resp AccessHashTypeChannel
+
+	err := json.Unmarshal(data, &resp)
+
+	return &resp, err
+}
+
+func UnmarshalAccessHash(data json.RawMessage) (*AccessHash, error) {
+	var resp AccessHash
 
 	err := json.Unmarshal(data, &resp)
 
@@ -13712,6 +13773,14 @@ func UnmarshalDatabaseStatistics(data json.RawMessage) (*DatabaseStatistics, err
 	return &resp, err
 }
 
+func UnmarshalMemoryStatistics(data json.RawMessage) (*MemoryStatistics, error) {
+	var resp MemoryStatistics
+
+	err := json.Unmarshal(data, &resp)
+
+	return &resp, err
+}
+
 func UnmarshalNetworkTypeNone(data json.RawMessage) (*NetworkTypeNone, error) {
 	var resp NetworkTypeNone
 
@@ -14752,6 +14821,14 @@ func UnmarshalUpdateUser(data json.RawMessage) (*UpdateUser, error) {
 	return &resp, err
 }
 
+func UnmarshalUpdateAccessHash(data json.RawMessage) (*UpdateAccessHash, error) {
+	var resp UpdateAccessHash
+
+	err := json.Unmarshal(data, &resp)
+
+	return &resp, err
+}
+
 func UnmarshalUpdateBasicGroup(data json.RawMessage) (*UpdateBasicGroup, error) {
 	var resp UpdateBasicGroup
 
@@ -15613,6 +15690,15 @@ func UnmarshalType(data json.RawMessage) (Type, error) {
 
 	case TypeUserTypeUnknown:
 		return UnmarshalUserTypeUnknown(data)
+
+	case TypeAccessHashTypeUser:
+		return UnmarshalAccessHashTypeUser(data)
+
+	case TypeAccessHashTypeChannel:
+		return UnmarshalAccessHashTypeChannel(data)
+
+	case TypeAccessHash:
+		return UnmarshalAccessHash(data)
 
 	case TypeBotCommand:
 		return UnmarshalBotCommand(data)
@@ -18299,6 +18385,9 @@ func UnmarshalType(data json.RawMessage) (Type, error) {
 	case TypeDatabaseStatistics:
 		return UnmarshalDatabaseStatistics(data)
 
+	case TypeMemoryStatistics:
+		return UnmarshalMemoryStatistics(data)
+
 	case TypeNetworkTypeNone:
 		return UnmarshalNetworkTypeNone(data)
 
@@ -18688,6 +18777,9 @@ func UnmarshalType(data json.RawMessage) (Type, error) {
 
 	case TypeUpdateUser:
 		return UnmarshalUpdateUser(data)
+
+	case TypeUpdateAccessHash:
+		return UnmarshalUpdateAccessHash(data)
 
 	case TypeUpdateBasicGroup:
 		return UnmarshalUpdateBasicGroup(data)

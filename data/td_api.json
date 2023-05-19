@@ -1878,6 +1878,40 @@
             "properties": []
         },
         {
+            "name": "accessHashTypeUser",
+            "description": "An access hash of an user",
+            "class": "AccessHashType",
+            "properties": []
+        },
+        {
+            "name": "accessHashTypeChannel",
+            "description": "An access hash of a channel",
+            "class": "AccessHashType",
+            "properties": []
+        },
+        {
+            "name": "accessHash",
+            "description": "Access hash",
+            "class": "AccessHash",
+            "properties": [
+                {
+                    "name": "chat_id",
+                    "type": "int53",
+                    "description": "Chat identifier"
+                },
+                {
+                    "name": "type",
+                    "type": "AccessHashType",
+                    "description": "Access hash type"
+                },
+                {
+                    "name": "access_hash",
+                    "type": "int64",
+                    "description": "Access hash"
+                }
+            ]
+        },
+        {
             "name": "botCommand",
             "description": "Represents a command supported by a bot",
             "class": "BotCommand",
@@ -17267,6 +17301,18 @@
             ]
         },
         {
+            "name": "memoryStatistics",
+            "description": "Contains memory statistics",
+            "class": "MemoryStatistics",
+            "properties": [
+                {
+                    "name": "statistics",
+                    "type": "string",
+                    "description": "Memory statistics in an unspecified human-readable format"
+                }
+            ]
+        },
+        {
             "name": "networkTypeNone",
             "description": "The network is not available",
             "class": "NetworkType",
@@ -19391,6 +19437,18 @@
             ]
         },
         {
+            "name": "updateAccessHash",
+            "description": "Some data of a user or a chat has changed. This update is guaranteed to come before the user or chat identifier is returned to the application",
+            "class": "Update",
+            "properties": [
+                {
+                    "name": "access_hash",
+                    "type": "accessHash",
+                    "description": "Access hash"
+                }
+            ]
+        },
+        {
             "name": "updateBasicGroup",
             "description": "Some data of a basic group has changed. This update is guaranteed to come before the basic group identifier is returned to the application",
             "class": "Update",
@@ -20689,6 +20747,10 @@
         {
             "name": "UserType",
             "description": "Represents the type of a user. The following types are possible: regular users, deleted users and bots"
+        },
+        {
+            "name": "AccessHashType",
+            "description": "Represents the type of an access hash. The following types are possible: user, channel"
         },
         {
             "name": "ChatPhotoStickerType",
@@ -30736,6 +30798,20 @@
             "description": "Returns database statistics",
             "class": "DatabaseStatistics",
             "properties": [],
+            "is_synchronous": false,
+            "type": 1
+        },
+        {
+            "name": "getMemoryStatistics",
+            "description": "Returns memory statistics",
+            "class": "MemoryStatistics",
+            "properties": [
+                {
+                    "name": "full",
+                    "type": "Bool",
+                    "description": "Full memory statistics calculation"
+                }
+            ],
             "is_synchronous": false,
             "type": 1
         },

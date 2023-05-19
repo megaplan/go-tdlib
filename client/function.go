@@ -14928,6 +14928,32 @@ func (client *Client) GetDatabaseStatistics() (*DatabaseStatistics, error) {
 	return UnmarshalDatabaseStatistics(result.Data)
 }
 
+type GetMemoryStatisticsRequest struct {
+	// Full memory statistics calculation
+	Full bool `json:"full"`
+}
+
+// Returns memory statistics
+func (client *Client) GetMemoryStatistics(req *GetMemoryStatisticsRequest) (*MemoryStatistics, error) {
+	result, err := client.Send(Request{
+		meta: meta{
+			Type: "getMemoryStatistics",
+		},
+		Data: map[string]interface{}{
+			"full": req.Full,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Type == "error" {
+		return nil, buildResponseError(result.Data)
+	}
+
+	return UnmarshalMemoryStatistics(result.Data)
+}
+
 type OptimizeStorageRequest struct {
 	// Limit on the total size of files after deletion, in bytes. Pass -1 to use the default limit
 	Size int64 `json:"size"`
@@ -17851,6 +17877,9 @@ func (client *Client) TestUseUpdate() (Update, error) {
 
 	case TypeUpdateUser:
 		return UnmarshalUpdateUser(result.Data)
+
+	case TypeUpdateAccessHash:
+		return UnmarshalUpdateAccessHash(result.Data)
 
 	case TypeUpdateBasicGroup:
 		return UnmarshalUpdateBasicGroup(result.Data)

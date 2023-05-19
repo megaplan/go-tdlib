@@ -19,6 +19,7 @@ const (
 	ClassStickerFullType                        = "StickerFullType"
 	ClassPollType                               = "PollType"
 	ClassUserType                               = "UserType"
+	ClassAccessHashType                         = "AccessHashType"
 	ClassChatPhotoStickerType                   = "ChatPhotoStickerType"
 	ClassInputChatPhoto                         = "InputChatPhoto"
 	ClassChatMemberStatus                       = "ChatMemberStatus"
@@ -156,6 +157,7 @@ const (
 	ClassChatBackground                         = "ChatBackground"
 	ClassProfilePhoto                           = "ProfilePhoto"
 	ClassChatPhotoInfo                          = "ChatPhotoInfo"
+	ClassAccessHash                             = "AccessHash"
 	ClassBotCommand                             = "BotCommand"
 	ClassBotCommands                            = "BotCommands"
 	ClassBotMenuButton                          = "BotMenuButton"
@@ -362,6 +364,7 @@ const (
 	ClassStorageStatistics                      = "StorageStatistics"
 	ClassStorageStatisticsFast                  = "StorageStatisticsFast"
 	ClassDatabaseStatistics                     = "DatabaseStatistics"
+	ClassMemoryStatistics                       = "MemoryStatistics"
 	ClassNetworkStatistics                      = "NetworkStatistics"
 	ClassAutoDownloadSettings                   = "AutoDownloadSettings"
 	ClassAutoDownloadSettingsPresets            = "AutoDownloadSettingsPresets"
@@ -495,6 +498,9 @@ const (
 	TypeUserTypeDeleted                                         = "userTypeDeleted"
 	TypeUserTypeBot                                             = "userTypeBot"
 	TypeUserTypeUnknown                                         = "userTypeUnknown"
+	TypeAccessHashTypeUser                                      = "accessHashTypeUser"
+	TypeAccessHashTypeChannel                                   = "accessHashTypeChannel"
+	TypeAccessHash                                              = "accessHash"
 	TypeBotCommand                                              = "botCommand"
 	TypeBotCommands                                             = "botCommands"
 	TypeBotMenuButton                                           = "botMenuButton"
@@ -1390,6 +1396,7 @@ const (
 	TypeStorageStatistics                                       = "storageStatistics"
 	TypeStorageStatisticsFast                                   = "storageStatisticsFast"
 	TypeDatabaseStatistics                                      = "databaseStatistics"
+	TypeMemoryStatistics                                        = "memoryStatistics"
 	TypeNetworkTypeNone                                         = "networkTypeNone"
 	TypeNetworkTypeMobile                                       = "networkTypeMobile"
 	TypeNetworkTypeMobileRoaming                                = "networkTypeMobileRoaming"
@@ -1520,6 +1527,7 @@ const (
 	TypeUpdateChatAction                                        = "updateChatAction"
 	TypeUpdateUserStatus                                        = "updateUserStatus"
 	TypeUpdateUser                                              = "updateUser"
+	TypeUpdateAccessHash                                        = "updateAccessHash"
 	TypeUpdateBasicGroup                                        = "updateBasicGroup"
 	TypeUpdateSupergroup                                        = "updateSupergroup"
 	TypeUpdateSecretChat                                        = "updateSecretChat"
@@ -1651,6 +1659,11 @@ type PollType interface {
 // Represents the type of a user. The following types are possible: regular users, deleted users and bots
 type UserType interface {
 	UserTypeType() string
+}
+
+// Represents the type of an access hash. The following types are possible: user, channel
+type AccessHashType interface {
+	AccessHashTypeType() string
 }
 
 // Describes type of a sticker, which was used to create a chat photo
@@ -5109,6 +5122,104 @@ func (*UserTypeUnknown) GetType() string {
 
 func (*UserTypeUnknown) UserTypeType() string {
 	return TypeUserTypeUnknown
+}
+
+// An access hash of an user
+type AccessHashTypeUser struct {
+	meta
+}
+
+func (entity *AccessHashTypeUser) MarshalJSON() ([]byte, error) {
+	entity.meta.Type = entity.GetType()
+
+	type stub AccessHashTypeUser
+
+	return json.Marshal((*stub)(entity))
+}
+
+func (*AccessHashTypeUser) GetClass() string {
+	return ClassAccessHashType
+}
+
+func (*AccessHashTypeUser) GetType() string {
+	return TypeAccessHashTypeUser
+}
+
+func (*AccessHashTypeUser) AccessHashTypeType() string {
+	return TypeAccessHashTypeUser
+}
+
+// An access hash of a channel
+type AccessHashTypeChannel struct {
+	meta
+}
+
+func (entity *AccessHashTypeChannel) MarshalJSON() ([]byte, error) {
+	entity.meta.Type = entity.GetType()
+
+	type stub AccessHashTypeChannel
+
+	return json.Marshal((*stub)(entity))
+}
+
+func (*AccessHashTypeChannel) GetClass() string {
+	return ClassAccessHashType
+}
+
+func (*AccessHashTypeChannel) GetType() string {
+	return TypeAccessHashTypeChannel
+}
+
+func (*AccessHashTypeChannel) AccessHashTypeType() string {
+	return TypeAccessHashTypeChannel
+}
+
+// Access hash
+type AccessHash struct {
+	meta
+	// Chat identifier
+	ChatId int64 `json:"chat_id"`
+	// Access hash type
+	Type AccessHashType `json:"type"`
+	// Access hash
+	AccessHash JsonInt64 `json:"access_hash"`
+}
+
+func (entity *AccessHash) MarshalJSON() ([]byte, error) {
+	entity.meta.Type = entity.GetType()
+
+	type stub AccessHash
+
+	return json.Marshal((*stub)(entity))
+}
+
+func (*AccessHash) GetClass() string {
+	return ClassAccessHash
+}
+
+func (*AccessHash) GetType() string {
+	return TypeAccessHash
+}
+
+func (accessHash *AccessHash) UnmarshalJSON(data []byte) error {
+	var tmp struct {
+		ChatId     int64           `json:"chat_id"`
+		Type       json.RawMessage `json:"type"`
+		AccessHash JsonInt64       `json:"access_hash"`
+	}
+
+	err := json.Unmarshal(data, &tmp)
+	if err != nil {
+		return err
+	}
+
+	accessHash.ChatId = tmp.ChatId
+	accessHash.AccessHash = tmp.AccessHash
+
+	fieldType, _ := UnmarshalAccessHashType(tmp.Type)
+	accessHash.Type = fieldType
+
+	return nil
 }
 
 // Represents a command supported by a bot
@@ -34019,6 +34130,29 @@ func (*DatabaseStatistics) GetType() string {
 	return TypeDatabaseStatistics
 }
 
+// Contains memory statistics
+type MemoryStatistics struct {
+	meta
+	// Memory statistics in an unspecified human-readable format
+	Statistics string `json:"statistics"`
+}
+
+func (entity *MemoryStatistics) MarshalJSON() ([]byte, error) {
+	entity.meta.Type = entity.GetType()
+
+	type stub MemoryStatistics
+
+	return json.Marshal((*stub)(entity))
+}
+
+func (*MemoryStatistics) GetClass() string {
+	return ClassMemoryStatistics
+}
+
+func (*MemoryStatistics) GetType() string {
+	return TypeMemoryStatistics
+}
+
 // The network is not available
 type NetworkTypeNone struct {
 	meta
@@ -38154,6 +38288,33 @@ func (*UpdateUser) GetType() string {
 
 func (*UpdateUser) UpdateType() string {
 	return TypeUpdateUser
+}
+
+// Some data of a user or a chat has changed. This update is guaranteed to come before the user or chat identifier is returned to the application
+type UpdateAccessHash struct {
+	meta
+	// Access hash
+	AccessHash *AccessHash `json:"access_hash"`
+}
+
+func (entity *UpdateAccessHash) MarshalJSON() ([]byte, error) {
+	entity.meta.Type = entity.GetType()
+
+	type stub UpdateAccessHash
+
+	return json.Marshal((*stub)(entity))
+}
+
+func (*UpdateAccessHash) GetClass() string {
+	return ClassUpdate
+}
+
+func (*UpdateAccessHash) GetType() string {
+	return TypeUpdateAccessHash
+}
+
+func (*UpdateAccessHash) UpdateType() string {
+	return TypeUpdateAccessHash
 }
 
 // Some data of a basic group has changed. This update is guaranteed to come before the basic group identifier is returned to the application
